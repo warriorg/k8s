@@ -1,0 +1,46 @@
+version: "3"
+services: 
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.3.0
+    container_name: es01
+    volumes:
+      - ./esdata:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - elk
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.3.0
+    links:
+      - es01
+    environment:
+      ELASTICSEARCH_HOSTS: http://es01:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - es01 
+    networks:
+      - elk
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.3.0
+    links:
+      - es01
+    command: logstash -f /etc/logstash/conf.d/logstash.conf  #logstash 启动时使用的配置文件
+    volumes:
+      - $PWD/logstash/conf.d:/etc/logstash/conf.d  #logstash 配文件位置
+      - $PWD/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml  #logstash 配文件位置
+    depends_on:
+      - es01  #后于elasticsearch启动
+    ports:
+      - "4560:4560"
+      - "9600:9600"
+    networks:
+      - elk 
+
+networks:
+  elk:

@@ -1,0 +1,29 @@
+# COMPOSE_PROJECT_NAME=zk_test
+version: '3'
+services:
+    zookeeper:
+        image: wurstmeister/zookeeper
+        container_name: kafka_zk
+        ports: 
+            - "2181:2181"
+    
+    kafka:
+        image: wurstmeister/kafka
+        container_name: kafka
+        environment:
+            KAFKA_ADVERTISED_HOST_NAME: 192.168.12.58
+            KAFKA_CREATE_TOPICS: "test:1:1"
+            KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+        ports:
+            - "9092:9092"
+
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+
+    kafka-manager:  
+        image: sheepkiller/kafka-manager    
+        container_name: kafka-manager
+        environment:
+            ZK_HOSTS: 192.168.12.58                
+        ports:  
+        - "9000:9000" 
